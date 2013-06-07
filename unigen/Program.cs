@@ -12,15 +12,19 @@ namespace unigen
     {
         static void Main(string[] args)
         {
-            /*Console.WriteLine("Input File:");
-            string inf = Console.ReadLine();
-            Console.WriteLine("Output File:");
-            string outf = Console.ReadLine(); */
-            process();
+            Console.WriteLine("Input File:(\"UnicodeData.txt\")");
+            string ifile = Console.ReadLine();
+            if (ifile == "")
+                ifile = "UnicodeData.txt";
+            Console.WriteLine("Output File:(\"result.txt\")");
+            string ofile = Console.ReadLine();
+            if (ofile == "")
+                ofile = "result.txt";
+            process(ifile,ofile);
         }
-        static void process()
+        static void process(string infile,string outfile)
         {
-            StreamReader input = new StreamReader("UnicodeData.txt");
+            StreamReader input = new StreamReader(infile);
             ushort startdef = 0x001F;
             ushort enddef = 0xFFFC;
             List<ushort> exp = new List<ushort>();
@@ -35,10 +39,7 @@ namespace unigen
             {
                 StringBuilder templine = new StringBuilder();
                 int i = 1;
-                
                 string[] items = line.Split(';');
-                if (items[0] == "10000")
-                    break;
                 ushort ucode = ushort.Parse(items[0], System.Globalization.NumberStyles.HexNumber);
                 if (ucode <= startdef || (ucode < 0x00A0 && ucode > 0x007E))
                     i = 10;
@@ -47,20 +48,13 @@ namespace unigen
                 templine.Append(ucode.ToString() + " \"" + items[i] + "\" \n");
                 rcfile.Append(casefix.ToTitleCase(templine.ToString().ToLower()));
                 if (ucode == enddef)
-                        break;
-                
-                
+                    break;    
             }
-            using (StreamWriter output = new StreamWriter("res.txt"))
+            using (StreamWriter output = new StreamWriter(outfile))
             {
                 output.Write(rcfile.ToString());
             }
         }
-
-
-            
-
-
-        }
     }
+}
 
