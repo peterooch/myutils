@@ -51,7 +51,11 @@ namespace unigen
                     break;    
             }
             using (StreamWriter output = new StreamWriter(outfile))
-            {
+            {   
+                //finishing touches
+                rcfile.Replace("Cjk", "CJK");
+                //specifics
+                rcfile.Replace(" (Nel)", "").Replace(" (Cr)", "").Replace(" (Ff)", "").Replace(" (Lf)", "");
                 output.Write(rcfile.ToString());
             }
         }
