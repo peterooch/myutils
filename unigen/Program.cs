@@ -5,17 +5,29 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Globalization;
+using System.Net;
 
 namespace unigen
 {
     class Program
     {
+        
         static void Main(string[] args)
         {
-            Console.WriteLine("Input File:(\"UnicodeData.txt\")");
+            string def = "UnicodeData.txt";
+            Console.WriteLine("Input File:(\"UnicodeData.txt\")\n Write \"Refresh\" to download a fresh copy");
             string ifile = Console.ReadLine();
             if (ifile == "")
-                ifile = "UnicodeData.txt";
+                ifile = def;
+            else if (ifile == "Refresh")
+            {
+                WebClient Downloader = new WebClient();
+                string UniDataURL = "http://www.unicode.org/Public/UNIDATA/UnicodeData.txt";
+                Console.WriteLine("Downloading file {0}",UniDataURL);
+                Downloader.DownloadFile(UniDataURL, def);
+                Console.WriteLine("Download Finished");
+                ifile = def;
+            }
             Console.WriteLine("Output File:(\"result.txt\")");
             string ofile = Console.ReadLine();
             if (ofile == "")
@@ -45,7 +57,7 @@ namespace unigen
                     i = 10;
                 if (exp.Contains(ucode))
                     continue;
-                templine.Append(ucode.ToString() + " \"" + items[i] + "\" \n");
+                templine.Append("    " +ucode.ToString() + " \"" + items[i] + "\" \n");
                 rcfile.Append(casefix.ToTitleCase(templine.ToString().ToLower()));
                 if (ucode == enddef)
                     break;    
