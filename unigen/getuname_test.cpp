@@ -1,22 +1,29 @@
 #include <Windows.h>
 #include <string.h>
 #include <stdio.h>
+
+/*
+A simple program that demonstrates the GetUName function of the
+Windows/ReactOS getuname.dll
+This DLL is usually only used by the charmap system application.
+*/
+
 int wmain()
 {
     WCHAR desc[255];
     int (FAR STDAPICALLTYPE * GetUName)(WORD wCharCode, LPWSTR lpbuf);
-    HINSTANCE hgetuname = NULL;
+    HINSTANCE hGetUName = LoadLibraryW(L"getuname.dll");
     //getUName GetUName;
-    hgetuname = LoadLibraryW(L"getuname.dll");
-    if (hgetuname != NULL)
+    if (hGetUName != NULL)
     {
-        (FARPROC&)GetUName = /*(getUName)*/GetProcAddress(hgetuname,"GetUName");
+        (FARPROC&)GetUName = /*(getUName)*/GetProcAddress(hGetUName,"GetUName");
         if (GetUName == NULL)
         {
-            FreeLibrary(hgetuname);
+            FreeLibrary(hGetUName);
             return 1;
         }
     }
+    wprintf(L"Please type a character:");
     WCHAR ch = getwchar();
     int res = GetUName(ch,desc);
     if (desc == NULL)
@@ -25,7 +32,7 @@ int wmain()
         return 1;
     }
     wprintf(L"U+%04X: %s",ch,desc);
-    wprintf(L"Press a key to continue");
+    wprintf(L"Press return to exit.");
     getwchar();
     return 0;
 }

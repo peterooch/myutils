@@ -11,7 +11,7 @@ namespace unigen
 {
     class Program
     {
-        
+
         static void Main(string[] args)
         {
             string def = "UnicodeData.txt";
@@ -44,7 +44,7 @@ namespace unigen
             exp.Add(0x0081);
             exp.Add(0x0084);
             exp.Add(0x0099);
-            StringBuilder rcfile = new StringBuilder();            
+            StringBuilder rcfile = new StringBuilder();
             string line;
             TextInfo casefix = new CultureInfo("en-US", false).TextInfo;
             while ((line = input.ReadLine()) != null)
@@ -60,10 +60,10 @@ namespace unigen
                 templine.Append("    " +ucode.ToString() + " \"" + items[i] + "\" \n");
                 rcfile.Append(casefix.ToTitleCase(templine.ToString().ToLower()));
                 if (ucode == enddef)
-                    break;    
+                    break;
             }
             using (StreamWriter output = new StreamWriter(outfile))
-            {   
+            {
                 //finishing touches
                 rcfile.Replace("Cjk", "CJK");
                 //specifics
@@ -73,4 +73,3 @@ namespace unigen
         }
     }
 }
-
