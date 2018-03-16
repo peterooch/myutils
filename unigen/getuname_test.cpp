@@ -8,10 +8,10 @@ int wmain()
     HINSTANCE hgetuname = NULL;
     //getUName GetUName;
     hgetuname = LoadLibraryW(L"getuname.dll");
-    if(hgetuname != NULL)
+    if (hgetuname != NULL)
     {
         (FARPROC&)GetUName = /*(getUName)*/GetProcAddress(hgetuname,"GetUName");
-        if(GetUName == NULL)
+        if (GetUName == NULL)
         {
             FreeLibrary(hgetuname);
             return 1;
@@ -19,12 +19,13 @@ int wmain()
     }
     WCHAR ch = getwchar();
     int res = GetUName(ch,desc);
-    if(desc == NULL)
+    if (desc == NULL)
     {
         wprintf(L"Error %d",res);
         return 1;
     }
     wprintf(L"U+%04X: %s",ch,desc);
+    wprintf(L"Press a key to continue");
+    getwchar();
     return 0;
 }
-            
