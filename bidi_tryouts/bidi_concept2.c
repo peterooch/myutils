@@ -31,7 +31,7 @@ ExtTextOutW(
 if (ScriptIsComplex(lpString, uCount, SIC_COMPLEX) == S_FALSE) //bypass completely if not needed
       return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0);
 
-if(ScriptStringAnalyse() != S_OK)
+if(ScriptStringAnalyse() != S_OK) //function needs to be fully arged
       return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0); //admitting defeat
                   //now manipulate this so at the end we can show legit bidi text
                   //commented out args mean they are not used in the function
@@ -62,7 +62,7 @@ if(ScriptStringAnalyse() != S_OK)
                           reordered_glyphs = heap_alloc( cwc * sizeof(WORD) );
                           if (!reordered_glyphs)
                           {
-                              heap_free( lpDx );
+                              //heap_free( lpDx );
                               return E_OUTOFMEMORY;
                           }
 
