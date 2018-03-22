@@ -1,4 +1,5 @@
 /*win32ss/gdi/gdi32/objects/text.c */
+/*dll/win32/usp10/usp10.c */
 /* reconfigured ScriptTextOut to ExtTextOutW... who would belive that */
 #include <precomp.h>
 #include <usp10.h>
@@ -34,45 +35,45 @@ if(ScriptStringAnalyse() != S_OK)
       return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0); //admitting defeat
                   //now manipulate this so at the end we can show legit bidi text
                   //commented out args mean they are not used in the function
-                  HRESULT WINAPI ScriptTextOut(const HDC hdc, SCRIPT_CACHE *psc, int x, int y, UINT fuOptions,
-                                               const RECT *lprc, const SCRIPT_ANALYSIS *psa, const WCHAR *pwcReserved,
-                                               int iReserved, const WORD *pwGlyphs, int cGlyphs, const int *piAdvance,
-                                               const int *piJustify, const GOFFSET *pGoffset)
-                  {
+                  HRESULT WINAPI ScriptTextOut(/*const HDC hdc*/, SCRIPT_CACHE *psc, /*int x, int y, UINT fuOptions,*/
+                                               /*const RECT *lprc*/, const SCRIPT_ANALYSIS *psa, /*const WCHAR *pwcReserved,
+                                               int iReserved*/, /* const WORD *lpString, int cwc */, const int *piAdvance,
+                                               /*const int *piJustify*/, const GOFFSET *pGoffset) //so need to configure/find psc,psa,piAdvance, pGoffset
+
                       HRESULT hr = S_OK;
                       INT i, dir = 1;
-                      INT *lpDx;
-                      WORD *reordered_glyphs = (WORD *)pwGlyphs;
+                      //INT *lpDx;
+                      WORD *reordered_glyphs = (WORD *)lpString;
 
                       if (!hdc || !psc) return E_INVALIDARG;
-                      if (!piAdvance || !psa || !pwGlyphs) return E_INVALIDARG;
+                      if (!piAdvance || !psa || !lpString) return E_INVALIDARG;
 
                       fuOptions &= ETO_CLIPPED + ETO_OPAQUE;
                       fuOptions |= ETO_IGNORELANGUAGE;
                       if  (!psa->fNoGlyphIndex)                                     /* Have Glyphs?                      */
                           fuOptions |= ETO_GLYPH_INDEX;                             /* Say don't do translation to glyph */
 
-                      lpDx = heap_alloc(cGlyphs * sizeof(INT) * 2);
+                      //lpDx = heap_alloc(cwc * sizeof(INT) * 2);
                       if (!lpDx) return E_OUTOFMEMORY;
                       fuOptions |= ETO_PDY;
 
                       if (psa->fRTL && psa->fLogicalOrder)
                       {
-                          reordered_glyphs = heap_alloc( cGlyphs * sizeof(WORD) );
+                          reordered_glyphs = heap_alloc( cwc * sizeof(WORD) );
                           if (!reordered_glyphs)
                           {
                               heap_free( lpDx );
                               return E_OUTOFMEMORY;
                           }
 
-                          for (i = 0; i < cGlyphs; i++)
-                              reordered_glyphs[i] = pwGlyphs[cGlyphs - 1 - i];
+                          for (i = 0; i < cwc; i++)
+                              reordered_glyphs[i] = lpString[cwc - 1 - i];
                           dir = -1;
                       }
 
-                      for (i = 0; i < cGlyphs; i++)
+                      for (i = 0; i < cwc; i++)
                       {
-                          int orig_index = (dir > 0) ? i : cGlyphs - 1 - i;
+                          int orig_index = (dir > 0) ? i : cwc - 1 - i;
                           lpDx[i * 2] = piAdvance[orig_index];
                           lpDx[i * 2 + 1] = 0;
 
@@ -93,11 +94,11 @@ if(ScriptStringAnalyse() != S_OK)
                           }
                       }
 
-                      if (!ExtTextOutW(hdc, x, y, fuOptions, lprc, reordered_glyphs, cGlyphs, lpDx)) //change this to the one below...
+                      if (!ExtTextOutW(hdc, x, y, fuOptions, lprc, reordered_glyphs, cwc, lpDx)) //change this to the one below...
                       NtGdiExtTextOutW(hdc, x, y, fuOptions, (LPRECT)lprc, (LPWSTR)lpString, cwc, (LPINT)lpDx, 0);
                           hr = S_FALSE;
 
-                      if (reordered_glyphs != pwGlyphs) heap_free( reordered_glyphs );
+                      if (reordered_glyphs != lpString) heap_free( reordered_glyphs );
                       heap_free(lpDx);
 
                       return hr;
