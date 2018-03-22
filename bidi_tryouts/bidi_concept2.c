@@ -1,7 +1,7 @@
 /*win32ss/gdi/gdi32/objects/text.c */
 /*dll/win32/usp10/usp10.c */
 /* reconfigured ScriptTextOut to ExtTextOutW... who would belive that */
-#include <precomp.h>
+#include <windows.h>
 #include <usp10.h>
 BOOL
 WINAPI
@@ -31,13 +31,21 @@ ExtTextOutW(
 if (ScriptIsComplex(lpString, uCount, SIC_COMPLEX) == S_FALSE) //bypass completely if not needed
       return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0);
 
-if(ScriptStringAnalyse() != S_OK) //function needs to be fully arged
+SCRIPT_CONTROL sControl;
+SCRIPT_ANALYSIS *psa;
+GOFFSET pGoffset[cwc];
+SCRIPT_CACHE *psc = NULL;
+SCRIPT_STRING_ANALYSIS *pssa = NULL;
+
+if(ScriptPlace(hdc, psc, ) != S_OK) //need to find Goffsets
+      return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0);
+if(ScriptStringAnalyse(hdc, lpString, cwc, (1.5 * sizeof(lpString) + 16), -1, SSA_RTL, lprc.right - lprc.left, NULL, NULL, NULL, NULL, ) != S_OK) //function needs to be fully arged
       return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0); //admitting defeat
                   //now manipulate this so at the end we can show legit bidi text
                   //commented out args mean they are not used in the function
-                  HRESULT WINAPI ScriptTextOut(/*const HDC hdc*/, SCRIPT_CACHE *psc, /*int x, int y, UINT fuOptions,*/
+                  HRESULT WINAPI ScriptTextOut(/*const HDC hdc, SCRIPT_CACHE *psc, int x, int y, UINT fuOptions,*/
                                                /*const RECT *lprc*/, const SCRIPT_ANALYSIS *psa, /*const WCHAR *pwcReserved,
-                                               int iReserved*/, /* const WORD *lpString, int cwc */, const int *piAdvance,
+                                               int iReserved*/, /* const WORD *lpString, int cwc */, /*const int *piAdvance,*/
                                                /*const int *piJustify*/, const GOFFSET *pGoffset) //so need to configure/find psc,psa,piAdvance, pGoffset
 
                       HRESULT hr = S_OK;
@@ -45,8 +53,8 @@ if(ScriptStringAnalyse() != S_OK) //function needs to be fully arged
                       //INT *lpDx;
                       WORD *reordered_glyphs = (WORD *)lpString;
 
-                      if (!hdc || !psc) return E_INVALIDARG;
-                      if (!piAdvance || !psa || !lpString) return E_INVALIDARG;
+                      //if (!hdc || !psc) return E_INVALIDARG;
+                      //if (!piAdvance || !psa || !lpString) return E_INVALIDARG;
 
                       fuOptions &= ETO_CLIPPED + ETO_OPAQUE;
                       fuOptions |= ETO_IGNORELANGUAGE;
@@ -74,7 +82,7 @@ if(ScriptStringAnalyse() != S_OK) //function needs to be fully arged
                       for (i = 0; i < cwc; i++)
                       {
                           int orig_index = (dir > 0) ? i : cwc - 1 - i;
-                          lpDx[i * 2] = piAdvance[orig_index];
+                          lpDx[i * 2] = 8;
                           lpDx[i * 2 + 1] = 0;
 
                           if (pGoffset)
@@ -94,12 +102,11 @@ if(ScriptStringAnalyse() != S_OK) //function needs to be fully arged
                           }
                       }
 
-                      if (!ExtTextOutW(hdc, x, y, fuOptions, lprc, reordered_glyphs, cwc, lpDx)) //change this to the one below...
-                      NtGdiExtTextOutW(hdc, x, y, fuOptions, (LPRECT)lprc, (LPWSTR)lpString, cwc, (LPINT)lpDx, 0);
-                          hr = S_FALSE;
+                      if (!NtGdiExtTextOutW(hdc, x, y, fuOptions, (LPRECT)lprc, (LPWSTR)reordered_glyphs, cwc, (LPINT)lpDx, 0))
+                        hr = S_FALSE;
 
                       if (reordered_glyphs != lpString) heap_free( reordered_glyphs );
-                      heap_free(lpDx);
+                      //heap_free(lpDx);
 
                       return hr;
 
