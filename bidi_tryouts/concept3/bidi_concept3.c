@@ -9,14 +9,14 @@ and a pointer to a empty string that should receive the reordered string */
 BOOL BiDi_ReOrder(LPWSTR lpString, UINT uCount, LPWSTR lpnewString)
 {
   LPWSTR workstr = NULL;
-  LPWSTR line;
+  LPWSTR line = NULL;
   UINT len = 0;
-  for(UINT i = 0; i => uCount; i++, len++)
+  for(UINT i = 0; i <= uCount ; i++ , len++)
   {
     wcscat(line, lpString[i]);
-    if(lpString[i] == L"\n" || lpString[i] = L"\0")
+    if(lpString[i] == L"\n" || lpString[i] == L"\0")
     {
-      int *dirs = NULL;
+      UINT *dirs = NULL;
       analyseLine(line, dirs, len);
       if(!reorderLine(line, dirs, len))
         return FALSE;
@@ -29,36 +29,42 @@ BOOL BiDi_ReOrder(LPWSTR lpString, UINT uCount, LPWSTR lpnewString)
   return TRUE;
 }
 //checks each character and puts its type in its index number in dirs
-VOID analyseLine(LPWSTR line, UINT *dirs, UINT len)
+UINT analyseLine(LPWSTR line, UINT *dirs, UINT len)
 {
   for (UINT i = 0; i <= len; i++)
   {
     dirs[i] = checkChar(line[i]);
   }
+  return TRUE;//Visual studio nag
 }
 //Returns LL, RL, NL for checked character
 UINT checkChar(WCHAR wch)
 {
   //for now only checks for hebrew characters
-  if(wch <= 0x05F4 && wch => 0x0591)
-  return RC;
-  else
-  return LC;
+	if (wch < 0x05F4 && wch > 0x0591)
+	{
+		return RC;
+	}
+	else
+	{
+		return LC;
+	}
   //return NL;
 }
 //Magic reordering should happen here
 BOOL reorderLine(LPWSTR line, UINT *dirs, UINT len)
 {
   LPWSTR workline = NULL;
-  UINT charCount = 0;
-  UINT lineDone = 0;
-  for(int i = 0; i <= len;)
+  /*UINT charCount = 0;
+  UINT lineDone = 0; 
+  uneeded for some reason ^ */
+  for(UINT i = 0; i <= len;)
   {
-    if (dirs[i] == LC)
-    {
-      workline[i] = line[i];
-      i++
-    }
+	  if (dirs[i] == LC)
+	  {
+		  workline[i] = line[i];
+		  i++;
+	  }
     else if (dirs[i] == RC)
     {
       UINT startOff = i;
@@ -66,7 +72,7 @@ BOOL reorderLine(LPWSTR line, UINT *dirs, UINT len)
       //reverse copy
       for(UINT startRC = startOff + lastRC; startOff == lastRC; startRC--)
       {
-        workline[i] == line[startRC];
+        workline[i] = line[startRC];
         i++;
       }
     }

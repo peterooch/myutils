@@ -1,4 +1,6 @@
 #include <windows.h>
+#include <string.h>
+#include <stdio.h>
 #include "bidi_concept3.h"
 
 int wmain()
