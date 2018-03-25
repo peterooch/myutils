@@ -31,24 +31,24 @@ ExtTextOutW(
 if (ScriptIsComplex(lpString, uCount, SIC_COMPLEX) == S_FALSE) //bypass completely if not needed
       return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0);
 
-SCRIPT_CONTROL sControl;
-SCRIPT_ANALYSIS *psa;
-GOFFSET pGoffset[cwc];
-SCRIPT_CACHE *psc = NULL;
-SCRIPT_STRING_ANALYSIS *pssa = NULL;
+//SCRIPT_CONTROL sControl;
+//SCRIPT_ANALYSIS *psa;
+GOFFSET *pGoffset;
+//SCRIPT_CACHE *psc = NULL;
+//SCRIPT_STRING_ANALYSIS *pssa = NULL;
 
 if(ScriptPlace(hdc, psc, ) != S_OK) //need to find Goffsets
       return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0);
-if(ScriptStringAnalyse(hdc, lpString, cwc, (1.5 * sizeof(lpString) + 16), -1, SSA_RTL, lprc.right - lprc.left, NULL, NULL, NULL, NULL, ) != S_OK) //function needs to be fully arged
-      return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0); //admitting defeat
+/*if(ScriptStringAnalyse(hdc, lpString, cwc, (1.5 * sizeof(lpString) + 16), -1, SSA_RTL, lprc.right - lprc.left, NULL, NULL, NULL, NULL, ) != S_OK) //function needs to be fully arged
+      return NtGdiExtTextOutW(hdc, x,  y,  fuOptions,  (LPRECT)lprc,  (LPWSTR)lpString,  cwc,  (LPINT)lpDx,  0);*/ //admitting defeat
                   //now manipulate this so at the end we can show legit bidi text
                   //commented out args mean they are not used in the function
                   HRESULT WINAPI ScriptTextOut(/*const HDC hdc, SCRIPT_CACHE *psc, int x, int y, UINT fuOptions,*/
-                                               /*const RECT *lprc*/, const SCRIPT_ANALYSIS *psa, /*const WCHAR *pwcReserved,
+                                               /*const RECT *lprc*/, /*const SCRIPT_ANALYSIS *psa*/, /*const WCHAR *pwcReserved,
                                                int iReserved*/, /* const WORD *lpString, int cwc */, /*const int *piAdvance,*/
                                                /*const int *piJustify*/, const GOFFSET *pGoffset) //so need to configure/find psc,psa,piAdvance, pGoffset
 
-                      HRESULT hr = S_OK;
+					  HRESULT hr = S_OK;
                       INT i, dir = 1;
                       //INT *lpDx;
                       WORD *reordered_glyphs = (WORD *)lpString;
@@ -58,15 +58,15 @@ if(ScriptStringAnalyse(hdc, lpString, cwc, (1.5 * sizeof(lpString) + 16), -1, SS
 
                       fuOptions &= ETO_CLIPPED + ETO_OPAQUE;
                       fuOptions |= ETO_IGNORELANGUAGE;
-                      if  (!psa->fNoGlyphIndex)                                     /* Have Glyphs?                      */
+                      //if  (!psa->fNoGlyphIndex)                                     /* Have Glyphs?                      */
                           fuOptions |= ETO_GLYPH_INDEX;                             /* Say don't do translation to glyph */
 
                       //lpDx = heap_alloc(cwc * sizeof(INT) * 2);
                       if (!lpDx) return E_OUTOFMEMORY;
                       fuOptions |= ETO_PDY;
 
-                      if (psa->fRTL && psa->fLogicalOrder)
-                      {
+                      /*if (psa->fRTL && psa->fLogicalOrder)
+                      {*/
                           reordered_glyphs = heap_alloc( cwc * sizeof(WORD) );
                           if (!reordered_glyphs)
                           {
@@ -77,7 +77,7 @@ if(ScriptStringAnalyse(hdc, lpString, cwc, (1.5 * sizeof(lpString) + 16), -1, SS
                           for (i = 0; i < cwc; i++)
                               reordered_glyphs[i] = lpString[cwc - 1 - i];
                           dir = -1;
-                      }
+                      //}
 
                       for (i = 0; i < cwc; i++)
                       {

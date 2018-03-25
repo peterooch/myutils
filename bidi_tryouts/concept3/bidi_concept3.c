@@ -1,4 +1,3 @@
-#include <windows.h>
 #include "bidi_concept3.h"
 #define LC 0 //Left aligned character
 #define RC 1 //Right aligned character
@@ -6,22 +5,22 @@
 
 /* This function receives a pointer to a string to be reordered, its length
 and a pointer to a empty string that should receive the reordered string */
-BOOL BiDi_ReOrder(LPWSTR lpString, UINT uCount, LPWSTR lpnewString)
+BOOL BiDi_ReOrder(LPCWSTR lpString, UINT uCount, LPWSTR lpnewString)
 {
-  LPWSTR workstr = NULL;
-  LPWSTR line = NULL;
+  WCHAR workstr[sizeof(lpString)];
+  WCHAR line[256];
   UINT len = 0;
   for(UINT i = 0; i <= uCount ; i++ , len++)
   {
-    wcscat(line, lpString[i]);
+    line[len] = lpString[i];
     if(lpString[i] == L"\n" || lpString[i] == L"\0")
     {
-      UINT *dirs = NULL;
+	  UINT *dirs = NULL;
       analyseLine(line, dirs, len);
       if(!reorderLine(line, dirs, len))
         return FALSE;
       wcscat(workstr, line);
-      line = NULL;
+	  //line = NULL;
       len = 0;
     }
   }
@@ -54,10 +53,12 @@ UINT checkChar(WCHAR wch)
 //Magic reordering should happen here
 BOOL reorderLine(LPWSTR line, UINT *dirs, UINT len)
 {
-  LPWSTR workline = NULL;
+  WCHAR workline[sizeof(line)];
+
   /*UINT charCount = 0;
-  UINT lineDone = 0; 
+  UINT lineDone = 0;
   uneeded for some reason ^ */
+
   for(UINT i = 0; i <= len;)
   {
 	  if (dirs[i] == LC)
