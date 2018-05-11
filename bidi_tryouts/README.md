@@ -1,3 +1,6 @@
+Archived, found solution:
+https://github.com/reactos/reactos/pull/534
+
 Concept 1 - trying to use the usp10 functions to do the proper reordering
 
 Concept 2 - trying to use the ScriptTextOut function code from usp10 in ExtTextOutW
