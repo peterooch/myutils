@@ -1,16 +1,54 @@
 /* Made by Baruch Rutman (peterooch at gmail dot com), see README */
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <strsafe.h>
 
 #define IDC_REORDER 10
 #define IDC_LAYOUT  11
 HINSTANCE hInst;
-HWND MainWnd, hInput, hOutput, hBtnReorder, hBtnLayout;
+HWND MainWnd, hInput, hOutput, hOctalOutput, hBtnReorder, hBtnLayout;
 LPCWSTR ClassName = L"OneLineReorderer";
 HDC hdc;
 BOOL bRTL = 1;
+HFONT hfont;
 
-static VOID Reorder()
+static inline VOID SetWnd(HWND hwnd)
+{
+    if (hfont)
+        SendMessageW(hwnd, WM_SETFONT, (WPARAM)hfont, 0);
+
+    ShowWindow(hwnd, SW_SHOW);
+}
+
+static VOID WriteOctal(LPCWSTR str, int count)
+{
+    static const WCHAR unicode_aleph = 0x05D0; // Beginning of unicode range
+    static const WCHAR unicode_tav   = 0x05EA; // End of unicode range
+    static const BYTE  cp862_aleph   = 0200; // First in codepage range
+    WCHAR szOctal[MAX_PATH];
+    WCHAR octCode[5];
+    BYTE  char_code = 0;
+    INT i;
+
+    ZeroMemory(szOctal, sizeof(szOctal));
+    SetWindowLongPtrW(hOctalOutput, GWL_EXSTYLE, 0L);
+
+    for (i = 0; i < count; i++)
+    {
+        if (str[i] < unicode_aleph || str[i] > unicode_tav)
+        {
+            szOctal[i] = str[i];
+            continue;
+        }
+
+        char_code = (str[i] - unicode_aleph) + cp862_aleph;
+        StringCchPrintfW(octCode, 5, L"\\%o", char_code);
+        StringCchCatW(szOctal, MAX_PATH, octCode);
+    }
+    SetWindowTextW(hOctalOutput, szOctal);
+}
+
+static VOID Reorder(VOID)
 {
     WCHAR szInput[MAX_PATH], szOutput[MAX_PATH];
     INT iInputLength;
@@ -30,7 +68,7 @@ static VOID Reorder()
     GetCharacterPlacementW(hdc, szInput, iInputLength, 0, &gcpResult, GCP_REORDER);
 
     SetWindowTextW(hOutput, szOutput);
-    UpdateWindow(hBtnLayout);
+    WriteOctal(szOutput, iInputLength);
 
 #if 0 // Works but make the program unusable...
     if (OpenClipboard(MainWnd))
@@ -47,40 +85,36 @@ static VOID Reorder()
 #endif
 }
 
-static VOID PaintWnd()
+static VOID PaintWnd(VOID)
 {
     TEXTMETRICW tm;
     PAINTSTRUCT ps;
-    HFONT hfont;
 
     hdc   = BeginPaint(MainWnd, &ps);
     hfont = CreateFontW(0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, L"Sans Serif");
 
-    hInput      = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT, 10, 20, 500, 26, MainWnd, NULL, hInst, NULL);
-    hOutput     = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_READONLY, 10, 80, 500, 26, MainWnd, NULL, hInst, NULL);
-    hBtnReorder = CreateWindowExW(0, L"button", L"Reorder", WS_CHILD | BS_PUSHBUTTON | WS_BORDER, 10, 50, 70, 26, MainWnd, (HMENU)IDC_REORDER, hInst, NULL);
-    hBtnLayout  = CreateWindowExW(0, L"button", L"", WS_CHILD | BS_PUSHBUTTON | WS_BORDER, 100, 50, 120, 26, MainWnd, (HMENU)IDC_LAYOUT, hInst, NULL);
+    hInput       = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT, 10, 20, 500, 26, MainWnd, NULL, hInst, NULL);
+    hOutput      = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_READONLY, 10, 100, 500, 26, MainWnd, NULL, hInst, NULL);
+    hOctalOutput = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_READONLY, 10, 130, 500, 26, MainWnd, NULL, hInst, NULL);
+    hBtnReorder  = CreateWindowExW(0, L"button", L"Reorder", WS_CHILD | BS_PUSHBUTTON | WS_BORDER, 10, 50, 70, 26, MainWnd, (HMENU)IDC_REORDER, hInst, NULL);
+    hBtnLayout   = CreateWindowExW(0, L"button", L"", WS_CHILD | BS_PUSHBUTTON | WS_BORDER, 100, 50, 120, 26, MainWnd, (HMENU)IDC_LAYOUT, hInst, NULL);
 
-    if (!hInput || !hOutput || !hBtnReorder || !hBtnLayout)
+    if (!hInput || !hOutput || !hBtnReorder || !hBtnLayout || !hOctalOutput)
         return;
 
     if (hfont)
-    {
         SelectObject(hdc, hfont);
-        SendMessageW(hInput,      WM_SETFONT, (WPARAM)hfont, 0);
-        SendMessageW(hOutput,     WM_SETFONT, (WPARAM)hfont, 0);
-        SendMessageW(hBtnReorder, WM_SETFONT, (WPARAM)hfont, 0);
-        SendMessageW(hBtnLayout,  WM_SETFONT, (WPARAM)hfont, 0);
-    }
+
+    SetWnd(hInput);
+    SetWnd(hOutput);
+    SetWnd(hOctalOutput);
+    SetWnd(hBtnReorder);
+    SetWnd(hBtnLayout);
 
     SetWindowTextW(hBtnLayout, bRTL ? L"Switch to LTR" : L"Switch to RTL");
-    ShowWindow(hInput,      SW_SHOW);
-    ShowWindow(hOutput,     SW_SHOW);
-    ShowWindow(hBtnReorder, SW_SHOW);
-    ShowWindow(hBtnLayout,  SW_SHOW);
     GetTextMetricsW(hdc, &tm);
     TextOutW(hdc, 10, 20 - 2 - tm.tmAscent, L"Input Text", 10);
-    TextOutW(hdc, 10, 106, L"Reordered Text", 14);
+    TextOutW(hdc, 10, 76, L"Reordered Text", 14);
 }
 
 static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -144,7 +178,7 @@ int WINAPI wWinMain(
                               CW_USEDEFAULT,
                               CW_USEDEFAULT,
                               600,
-                              175,
+                              210,
                               NULL,
                               NULL,
                               hInst,
