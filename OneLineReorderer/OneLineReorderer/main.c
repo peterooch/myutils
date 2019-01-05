@@ -20,7 +20,7 @@ static inline VOID SetWnd(HWND hwnd)
     ShowWindow(hwnd, SW_SHOW);
 }
 
-static VOID WriteOctal(LPCWSTR str, int count)
+static VOID WriteOctal(LPCWSTR str, INT count)
 {
     static const WCHAR unicode_aleph = 0x05D0; // Beginning of unicode range
     static const WCHAR unicode_tav   = 0x05EA; // End of unicode range
@@ -131,7 +131,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
                 Reorder();
                 return TRUE;
             }
-            else if (wParam == IDC_LAYOUT)
+            if (wParam == IDC_LAYOUT)
             {
                 SetLayout(hdc, bRTL ? 0 : LAYOUT_RTL);
                 bRTL = !bRTL;
@@ -177,7 +177,7 @@ int WINAPI wWinMain(
                               WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
                               CW_USEDEFAULT,
                               CW_USEDEFAULT,
-                              600,
+                              550,
                               210,
                               NULL,
                               NULL,
