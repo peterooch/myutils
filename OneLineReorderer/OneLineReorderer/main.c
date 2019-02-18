@@ -25,7 +25,7 @@ static VOID WriteOctal(LPCWSTR str, INT count)
     static const WCHAR unicode_aleph = 0x05D0; // Beginning of unicode range
     static const WCHAR unicode_tav   = 0x05EA; // End of unicode range
     static const BYTE  cp862_aleph   = 0200; // First in codepage range
-    WCHAR szOctal[MAX_PATH];
+    WCHAR szOctal[1024];
     WCHAR octCode[5];
     BYTE  char_code = 0;
     INT i;
@@ -43,7 +43,7 @@ static VOID WriteOctal(LPCWSTR str, INT count)
 
         char_code = (str[i] - unicode_aleph) + cp862_aleph;
         StringCchPrintfW(octCode, 5, L"\\%o", char_code);
-        StringCchCatW(szOctal, MAX_PATH, octCode);
+        StringCchCatW(szOctal, 1024, octCode);
     }
     SetWindowTextW(hOctalOutput, szOctal);
 }
@@ -93,9 +93,9 @@ static VOID PaintWnd(VOID)
     hdc   = BeginPaint(MainWnd, &ps);
     hfont = CreateFontW(0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, L"Sans Serif");
 
-    hInput       = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT, 10, 20, 500, 26, MainWnd, NULL, hInst, NULL);
-    hOutput      = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_READONLY, 10, 100, 500, 26, MainWnd, NULL, hInst, NULL);
-    hOctalOutput = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_READONLY, 10, 130, 500, 26, MainWnd, NULL, hInst, NULL);
+    hInput       = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL, 10, 20, 500, 26, MainWnd, NULL, hInst, NULL);
+    hOutput      = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_READONLY | ES_AUTOHSCROLL, 10, 100, 950, 26, MainWnd, NULL, hInst, NULL);
+    hOctalOutput = CreateWindowExW(0, L"edit", L"", WS_CHILD | WS_BORDER | ES_LEFT | ES_READONLY | ES_AUTOHSCROLL, 10, 130, 950, 26, MainWnd, NULL, hInst, NULL);
     hBtnReorder  = CreateWindowExW(0, L"button", L"Reorder", WS_CHILD | BS_PUSHBUTTON | WS_BORDER, 10, 50, 70, 26, MainWnd, (HMENU)IDC_REORDER, hInst, NULL);
     hBtnLayout   = CreateWindowExW(0, L"button", L"", WS_CHILD | BS_PUSHBUTTON | WS_BORDER, 100, 50, 120, 26, MainWnd, (HMENU)IDC_LAYOUT, hInst, NULL);
 
@@ -177,7 +177,7 @@ int WINAPI wWinMain(
                               WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
                               CW_USEDEFAULT,
                               CW_USEDEFAULT,
-                              550,
+                              1000,
                               210,
                               NULL,
                               NULL,
